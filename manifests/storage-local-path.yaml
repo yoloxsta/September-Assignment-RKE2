@@ -1,0 +1,45 @@
+# Local Path Provisioner - Simple storage for labs
+# Creates a StorageClass that provisions local storage on the node
+# 
+# Usage:
+#   kubectl apply -f storage-local-path.yaml
+#
+# Best for: Single-node labs and testing
+
+---
+# Install Local Path Provisioner
+# This is a simple storage provisioner that creates directories on the host
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: local-path-storage
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+---
+# Note: The actual provisioner needs to be installed separately
+# Run this command:
+# kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
+
+---
+# Example PVC using local-path storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: example-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi

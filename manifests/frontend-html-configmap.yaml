@@ -1,0 +1,282 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-html
+  namespace: demo-app
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>RKE2 Demo Application</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }
+            .container {
+                background: white;
+                border-radius: 10px;
+                padding: 40px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                margin-top: 20px;
+            }
+            h1 {
+                color: #333;
+                border-bottom: 3px solid #667eea;
+                padding-bottom: 10px;
+                margin-top: 0;
+            }
+            h2 {
+                color: #555;
+                margin-top: 30px;
+            }
+            .success {
+                background: #d4edda;
+                color: #155724;
+                padding: 20px;
+                border-radius: 5px;
+                margin: 20px 0;
+                border-left: 4px solid #28a745;
+            }
+            .info {
+                background: #e7f3ff;
+                padding: 20px;
+                border-radius: 5px;
+                margin: 20px 0;
+                border-left: 4px solid #0056b3;
+            }
+            .architecture {
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 5px;
+                margin: 20px 0;
+                font-family: monospace;
+                line-height: 1.6;
+            }
+            .api-status {
+                margin-top: 20px;
+                padding: 20px;
+                background: #fff3cd;
+                border-radius: 5px;
+                border-left: 4px solid #ffc107;
+            }
+            .label {
+                font-weight: bold;
+                color: #555;
+            }
+            code {
+                background: #f4f4f4;
+                padding: 2px 8px;
+                border-radius: 3px;
+                font-family: 'Courier New', monospace;
+                color: #c7254e;
+            }
+            ul, ol {
+                line-height: 1.8;
+            }
+            button {
+                background: #667eea;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+                margin-top: 10px;
+                transition: background 0.3s;
+            }
+            button:hover {
+                background: #5568d3;
+            }
+            #api-response {
+                margin-top: 15px;
+                padding: 15px;
+                background: #f0f0f0;
+                border-radius: 5px;
+                display: none;
+                font-family: monospace;
+                white-space: pre-wrap;
+            }
+            .endpoint {
+                background: #fff;
+                padding: 10px;
+                margin: 10px 0;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+            }
+            .method {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 3px;
+                font-weight: bold;
+                margin-right: 10px;
+            }
+            .get { background: #61affe; color: white; }
+            .post { background: #49cc90; color: white; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚀 RKE2 Demo Application</h1>
+            
+            <div class="success">
+                ✅ <strong>Success!</strong> Your RKE2 cluster is working correctly!
+            </div>
+            
+            <div class="info">
+                <h2>What is Running?</h2>
+                <ul>
+                    <li><strong>Frontend:</strong> This web page (nginx)</li>
+                    <li><strong>Backend API:</strong> Simple API service</li>
+                    <li><strong>Service Type:</strong> ClusterIP (internal only)</li>
+                    <li><strong>Ingress:</strong> Traefik routing external traffic</li>
+                </ul>
+            </div>
+
+            <div class="architecture">
+                <h2>Traffic Flow</h2>
+                <pre>
+    Internet (User)
+         │
+         ▼
+    ┌─────────────────┐
+    │   Ingress       │  ← Traefik (port 80/443)
+    │  demo.local     │
+    └────────┬────────┘
+             │
+             ▼
+    ┌─────────────────┐
+    │  Service        │  ← ClusterIP (internal DNS)
+    │  frontend       │
+    └────────┬────────┘
+             │
+             ▼
+    ┌─────────────────┐
+    │  Pods           │  ← nginx containers
+    │  (replicas: 2)  │
+    └─────────────────┘
+                </pre>
+            </div>
+
+            <div class="info">
+                <h2>Key Concepts Demonstrated</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #e7f3ff;">
+                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0056b3;">Resource</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #0056b3;">Purpose</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;"><code>Deployment</code></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;">Manages pod replicas and updates</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;"><code>ClusterIP</code></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;">Internal load balancing & DNS</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;"><code>Ingress</code></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;">External HTTP/HTTPS routing</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;"><code>ConfigMap</code></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;">Configuration data (this HTML)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px;"><code>Labels</code></td>
+                        <td style="padding: 10px;">Resource identification & selection</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="api-status">
+                <h2>🔌 API Status Check</h2>
+                <p>Test the backend API service:</p>
+                <button onclick="checkAPI()">Check API Status</button>
+                <div id="api-response"></div>
+            </div>
+
+            <div class="info">
+                <h2>API Endpoints</h2>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <code>/api/status</code>
+                    <p style="margin: 10px 0 0 0; color: #666;">Returns backend API health status</p>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <code>/api/info</code>
+                    <p style="margin: 10px 0 0 0; color: #666;">Returns backend API information</p>
+                </div>
+            </div>
+
+            <div class="api-status" style="background: #f8f9fa; border-left-color: #6c757d;">
+                <h2>📊 Current Pod Info</h2>
+                <p><span class="label">Namespace:</span> <code>demo-app</code></p>
+                <p><span class="label">Frontend Replicas:</span> <code>2</code></p>
+                <p><span class="label">Backend Replicas:</span> <code>2</code></p>
+            </div>
+
+            <div class="info" style="background: #fff; border-left-color: #667eea;">
+                <h2>🔗 Useful Commands</h2>
+                <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto;">
+# Check pods
+kubectl get pods -n demo-app
+
+# Check services
+kubectl get svc -n demo-app
+
+# Check ingress
+kubectl get ingress -n demo-app
+
+# View pod logs
+kubectl logs -n demo-app -l app=demo -f
+
+# Scale frontend
+kubectl scale deployment frontend -n demo-app --replicas=5
+                </pre>
+            </div>
+        </div>
+        
+        <script>
+        function checkAPI() {
+            const responseDiv = document.getElementById('api-response');
+            responseDiv.style.display = 'block';
+            responseDiv.innerHTML = '⏳ Checking API...';
+            
+            fetch('/api/status')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('API returned ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    responseDiv.innerHTML = '✅ <strong>API Response:</strong>\n\n' + 
+                        JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    responseDiv.innerHTML = 'ℹ️ <strong>Note:</strong> Backend API not configured in this demo.\n\n' +
+                        'In a production setup:\n' +
+                        '1. The Ingress would route /api to the backend service\n' +
+                        '2. The backend service would respond with JSON data\n\n' +
+                        'To test manually:\n' +
+                        'kubectl port-forward -n demo-app svc/backend 8081:8080\n' +
+                        'Then: curl http://localhost:8081/';
+                });
+        }
+        
+        // Display current timestamp
+        console.log('RKE2 Demo Application loaded at:', new Date().toISOString());
+        </script>
+    </body>
+    </html>

@@ -1,0 +1,393 @@
+# Single file deployment - deploy all resources at once
+# Usage: kubectl apply -f deploy-all.yaml
+
+---
+# 1. Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo-app
+  labels:
+    app: demo
+    purpose: learning
+
+---
+# 2. ConfigMap for frontend HTML
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-html
+  namespace: demo-app
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>RKE2 Demo Application</title>
+        <style>
+            * { box-sizing: border-box; }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }
+            .container {
+                background: white;
+                border-radius: 10px;
+                padding: 40px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                margin-top: 20px;
+            }
+            h1 {
+                color: #333;
+                border-bottom: 3px solid #667eea;
+                padding-bottom: 10px;
+                margin-top: 0;
+            }
+            h2 { color: #555; margin-top: 30px; }
+            .success {
+                background: #d4edda;
+                color: #155724;
+                padding: 20px;
+                border-radius: 5px;
+                margin: 20px 0;
+                border-left: 4px solid #28a745;
+            }
+            .info {
+                background: #e7f3ff;
+                padding: 20px;
+                border-radius: 5px;
+                margin: 20px 0;
+                border-left: 4px solid #0056b3;
+            }
+            .architecture {
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 5px;
+                margin: 20px 0;
+                font-family: monospace;
+                line-height: 1.6;
+            }
+            code {
+                background: #f4f4f4;
+                padding: 2px 8px;
+                border-radius: 3px;
+                font-family: 'Courier New', monospace;
+                color: #c7254e;
+            }
+            ul, ol { line-height: 1.8; }
+            button {
+                background: #667eea;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+                margin-top: 10px;
+            }
+            button:hover { background: #5568d3; }
+            #api-response {
+                margin-top: 15px;
+                padding: 15px;
+                background: #f0f0f0;
+                border-radius: 5px;
+                display: none;
+                font-family: monospace;
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚀 RKE2 Demo Application</h1>
+            
+            <div class="success">
+                ✅ <strong>Success!</strong> Your RKE2 cluster is working correctly!
+            </div>
+            
+            <div class="info">
+                <h2>What is Running?</h2>
+                <ul>
+                    <li><strong>Frontend:</strong> This web page (nginx)</li>
+                    <li><strong>Backend API:</strong> Simple API service</li>
+                    <li><strong>Service Type:</strong> ClusterIP (internal only)</li>
+                    <li><strong>Ingress:</strong> Traefik routing external traffic</li>
+                </ul>
+            </div>
+
+            <div class="architecture">
+                <h2>Traffic Flow</h2>
+                <pre>
+    Internet (User)
+         │
+         ▼
+    ┌─────────────────┐
+    │   Ingress       │  ← Traefik (port 80/443)
+    │  demo.local     │
+    └────────┬────────┘
+             │
+             ▼
+    ┌─────────────────┐
+    │  Service        │  ← ClusterIP (internal DNS)
+    │  frontend       │
+    └────────┬────────┘
+             │
+             ▼
+    ┌─────────────────┐
+    │  Pods           │  ← nginx containers
+    │  (replicas: 2)  │
+    └─────────────────┘
+                </pre>
+            </div>
+
+            <div class="info">
+                <h2>Key Concepts Demonstrated</h2>
+                <ul>
+                    <li><code>Deployment</code> - Manages pod replicas and updates</li>
+                    <li><code>ClusterIP</code> - Internal load balancing & DNS</li>
+                    <li><code>Ingress</code> - External HTTP/HTTPS routing</li>
+                    <li><code>ConfigMap</code> - Configuration data (this HTML)</li>
+                    <li><code>Labels</code> - Resource identification & selection</li>
+                </ul>
+            </div>
+
+            <div class="info" style="background: #fff3cd; border-left-color: #ffc107;">
+                <h2>🔌 API Status Check</h2>
+                <p>Test the backend API service:</p>
+                <button onclick="checkAPI()">Check API Status</button>
+                <div id="api-response"></div>
+            </div>
+
+            <div class="info" style="background: #fff; border-left-color: #667eea;">
+                <h2>🔗 Useful Commands</h2>
+                <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto;">
+# Check pods
+kubectl get pods -n demo-app
+
+# Check services
+kubectl get svc -n demo-app
+
+# Check ingress
+kubectl get ingress -n demo-app
+
+# View pod logs
+kubectl logs -n demo-app -l app=demo -f
+
+# Scale frontend
+kubectl scale deployment frontend -n demo-app --replicas=5
+                </pre>
+            </div>
+        </div>
+        
+        <script>
+        function checkAPI() {
+            const responseDiv = document.getElementById('api-response');
+            responseDiv.style.display = 'block';
+            responseDiv.innerHTML = '⏳ Checking API...';
+            
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    responseDiv.innerHTML = '✅ <strong>API Response:</strong>\n\n' + 
+                        JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    responseDiv.innerHTML = 'ℹ️ <strong>Note:</strong> Backend API not reachable.\n\n' +
+                        'To test manually:\n' +
+                        'kubectl port-forward -n demo-app svc/backend 8081:8080\n' +
+                        'Then: curl http://localhost:8081/';
+                });
+        }
+        </script>
+    </body>
+    </html>
+
+---
+# 3. Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: demo-app
+  labels:
+    app: demo
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: demo
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25-alpine
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: html
+        configMap:
+          name: frontend-html
+
+---
+# 4. Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: demo-app
+  labels:
+    app: demo
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: demo
+        tier: backend
+    spec:
+      containers:
+      - name: api
+        image: hashicorp/http-echo:1.0
+        args:
+        - -text
+        - |
+          {
+            "status": "healthy",
+            "service": "backend-api",
+            "message": "Hello from RKE2 Backend API!",
+            "version": "1.0.0"
+          }
+        - -listen=:8080
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 50m
+            memory: 32Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# 5. Frontend Service (ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: demo-app
+  labels:
+    app: demo
+    tier: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: demo
+    tier: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+
+---
+# 6. Backend Service (ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: demo-app
+  labels:
+    app: demo
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: demo
+    tier: backend
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+
+---
+# 7. Ingress - Path-based routing
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-ingress
+  namespace: demo-app
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+  - http:
+      paths:
+      - path: /demo
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend
+            port:
+              number: 8080

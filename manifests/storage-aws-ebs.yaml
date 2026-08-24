@@ -1,0 +1,74 @@
+# AWS EBS CSI Driver Storage Configuration
+# Creates StorageClass for AWS EBS volumes
+#
+# Prerequisites:
+#   1. IAM policy attached to EC2 instance (see docs/traefik-storage.md)
+#   2. EBS CSI Driver installed
+#
+# Install EBS CSI Driver:
+#   helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+#   helm install aws-ebs-csi-driver -n kube-system aws-ebs-csi-driver/aws-ebs-csi-driver
+#
+# Usage:
+#   kubectl apply -f storage-aws-ebs.yaml
+
+---
+# StorageClass for gp3 volumes (recommended)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: aws-ebs-gp3
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+parameters:
+  type: gp3
+  fsType: ext4
+  # Optional: IOPS and throughput for gp3
+  # iops: "3000"
+  # throughput: "125"
+
+---
+# StorageClass for gp2 volumes (legacy)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: aws-ebs-gp2
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: gp2
+  fsType: ext4
+
+---
+# StorageClass for io2 volumes (high performance)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: aws-ebs-io2
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: io2
+  fsType: ext4
+  iops: "100"
+
+---
+# Example PVC using EBS gp3
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-pvc-example
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce  # EBS volumes can only be mounted to one node at a time
+  storageClassName: aws-ebs-gp3
+  resources:
+    requests:
+      storage: 10Gi

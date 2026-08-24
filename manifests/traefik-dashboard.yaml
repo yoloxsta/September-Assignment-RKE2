@@ -1,0 +1,62 @@
+# Traefik Dashboard Configuration
+# Exposes Traefik dashboard for monitoring and debugging
+#
+# Usage:
+#   kubectl apply -f traefik-dashboard.yaml
+#   kubectl port-forward -n kube-system svc/traefik-dashboard 9000:9000
+#   Open: http://localhost:9000/dashboard/
+
+---
+# Enable Traefik Dashboard
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rke2-traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    # Enable dashboard
+    ingressRoute:
+      dashboard:
+        enabled: true
+    
+    # Dashboard service
+    ports:
+      traefik:
+        port: 9000
+        expose:
+          default: true
+        exposedPort: 9000
+    
+    # Enable API and dashboard
+    additionalArguments:
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+    
+    # Service configuration
+    service:
+      type: ClusterIP  # Change to LoadBalancer if needed
+
+---
+# Ingress for Traefik Dashboard (optional - for external access)
+# WARNING: Only use this in secure environments with proper authentication
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traefik-dashboard
+  namespace: kube-system
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: traefik.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: traefik
+            port:
+              number: 9000

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: demo-app
+  labels:
+    app: demo
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: demo
+        tier: backend
+    spec:
+      containers:
+      - name: api
+        image: hashicorp/http-echo:1.0
+        args:
+        - -text
+        - |
+          {
+            "status": "healthy",
+            "service": "backend-api",
+            "message": "Hello from RKE2 Backend API!",
+            "version": "1.0.0",
+            "timestamp": "auto-generated"
+          }
+        - -listen=:8080
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 50m
+            memory: 32Mi
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5

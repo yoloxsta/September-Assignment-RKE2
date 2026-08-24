@@ -1,0 +1,9 @@
+# Namespace for demo application
+# Create this first before applying other manifests
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo-app
+  labels:
+    app: demo
+    purpose: learning

@@ -1,0 +1,89 @@
+# Ingress for demo application
+# This configures Traefik to route external traffic to our services
+#
+# Two ingress resources are provided:
+# 1. Host-based routing (recommended for production)
+# 2. Path-based routing (easier for lab testing)
+
+---
+# Option 1: Host-based routing
+# Requires adding entry to /etc/hosts: <EC2_PUBLIC_IP> demo.local
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-ingress-host
+  namespace: demo-app
+  annotations:
+    # Traefik entrypoint (port 80)
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    # Enable redirect to HTTPS (uncomment if you configure TLS)
+    # traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: demo.local
+    http:
+      paths:
+      # Route root path to frontend
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+      # Route /api to backend
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend
+            port:
+              number: 8080
+
+---
+# Option 2: Path-based routing (no host required)
+# Access via: http://<EC2_PUBLIC_IP>/demo/
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-ingress-path
+  namespace: demo-app
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    # Strip prefix before sending to service
+    # traefik.ingress.kubernetes.io/router.middlewares: demo-stripprefix@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+  - http:
+      paths:
+      # Route /demo to frontend
+      - path: /demo
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+      # Route /api to backend
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend
+            port:
+              number: 8080
+
+---
+# Optional: Middleware for path-based routing
+# Uncomment if you want to strip the /demo prefix
+# apiVersion: traefik.io/v1alpha1
+# kind: Middleware
+# metadata:
+#   name: stripprefix
+#   namespace: demo-app
+# spec:
+#   stripPrefix:
+#     prefixes:
+#       - /demo
