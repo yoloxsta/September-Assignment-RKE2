@@ -67,7 +67,6 @@
 - Windows node support
 - GPU operator support
 ```
-
 ### 4. **Perfect For**
 - **Government & Defense**: FIPS compliance, DISA STIG
 - **Financial Services**: Security hardening, audit trails
