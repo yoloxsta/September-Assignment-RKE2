@@ -180,7 +180,6 @@ Single node (t3.medium): ~$1/day
 Three node cluster (1 server + 2 workers): ~$3/day
 Always terminate instances when not in use!
 ```
-
 ---
 
 ## Step-by-Step Setup
