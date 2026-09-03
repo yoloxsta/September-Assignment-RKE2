@@ -665,7 +665,7 @@ echo "Generated token: $TOKEN"
 ```bash
 # Create RKE2 configuration file
 sudo tee /etc/rancher/rke2/config.yaml <<EOF
-token: b1d882966c3f8039084df3838f5ea8d33ab570b4594b9a62430990f3d017695f
+token: ${CLUSTER_TOKEN}
 tls-san:
   - 3.128.170.22
   - 172.31.14.91
@@ -717,7 +717,7 @@ cat /etc/rancher/rke2/config.yaml
 
 **Expected output:**
 ```
-token: b1d882966c3f8039084df3838f5ea8d33ab570b4594b9a62430990f3d017695f
+token: ${CLUSTER_TOKEN}
 tls-san:
   - 3.128.170.22
   - 172.31.14.91
