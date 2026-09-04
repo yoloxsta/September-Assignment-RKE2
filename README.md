@@ -360,7 +360,6 @@ After completing this lab:
 ## License
 
 This lab guide is provided for educational purposes. RKE2 is open source under the Apache 2.0 license.
-
 ---
 
 **Let's begin!** Continue to [`docs/01-aws-ec2-setup.md`](docs/01-aws-ec2-setup.md) to launch your first EC2 instance.
